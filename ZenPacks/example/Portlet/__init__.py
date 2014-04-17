@@ -12,7 +12,7 @@ executed at startup time in all Zope clients.
 """
 import Globals
 import os.path
-import simplejson
+import json as simplejson
 from Products.ZenModel.ZenossSecurity import ZEN_COMMON
 from Products.ZenUtils.Utils import zenPath
 
@@ -23,40 +23,40 @@ from Products.ZenUtils.Utils import zenPath
 #    registerDirectory("skins", globals())
 
 def getJSONReportList(self, path='/Device Reports'):
-            """
-            Given a report class path, returns a list of links to child
-            reports in a format suitable for a TableDatasource.
-            """
+        """
+        Given a report class path, returns a list of links to child
+        reports in a format suitable for a TableDatasource.
+        """
 
-            # This function will be monkey-patched onto zport, so
-            # references to self should be taken as referring to zport
+        # This function will be monkey-patched onto zport, so
+        # references to self should be taken as referring to zport
 
-            # Add the base path to the path given
-            path = '/zport/dmd/Reports/' + path.strip('/')
+        # Add the base path to the path given
+        path = '/zport/dmd/Reports/' + path.strip('/')
 
-            # Create the empty structure of the response object
-            response = { 'columns': ['Report'], 'data': [] }
+        # Create the empty structure of the response object
+        response = { 'columns': ['Report'], 'data': [] }
 
-            # Retrieve the ReportClass object for the path given. If
-            # nothing can be found, return an empty response
-            try:
-                reportClass = self.dmd.unrestrictedTraverse(path)
-            except KeyError:
-                return simplejson.dumps(response)
-
-            # Get the list of reports under the class as (url, title) pairs
-            reports = reportClass.reports()
-            reportpairs = [(r.absolute_url_path(), r.id) for r in reports]
-
-            # Iterate over the reports, create links, and append them to
-            # the response object
-            for url, title in reportpairs:
-                link = "<a href='%s'>%s</a>" % (url, title)
-                row = { 'Report': link }
-                response['data'].append(row)
-
-            # Serialize the response and return it
+        # Retrieve the ReportClass object for the path given. If
+        # nothing can be found, return an empty response
+        try:
+            reportClass = self.dmd.unrestrictedTraverse(path)
+        except KeyError:
             return simplejson.dumps(response)
+
+        # Get the list of reports under the class as (url, title) pairs
+        reports = reportClass.reports()
+        reportpairs = [(r.absolute_url_path(), r.id) for r in reports]
+
+        # Iterate over the reports, create links, and append them to
+        # the response object
+        for url, title in reportpairs:
+            link = "<a href='%s'>%s</a>" % (url, title)
+            row = { 'Report': link }
+            response['data'].append(row)
+
+        # Serialize the response and return it
+        return simplejson.dumps(response)
 
         # Monkey-patch onto zport
         from Products.ZenModel.ZentinelPortal import ZentinelPortal
@@ -64,14 +64,15 @@ def getJSONReportList(self, path='/Device Reports'):
 
 from Products.ZenModel.ZenPack import ZenPackBase
 
+
 class ZenPack(ZenPackBase):
     """
     Portlet ZenPack class
     """
     def _registerReportListPortlet(self, app):
         zpm = app.zport.ZenPortletManager
-        portletsrc = zenPath('Products', 'ReportListPortletPack',
-                           'ReportListPortlet.js')
+        portletsrc = os.path.join( os.path.dirname(__file__), 'ReportListPortlet.js' )
+        # zenPath('ZenPacks', 'ZenPacks.example.Portlet', 'ReportListPortlet.js')
         zpm.register_portlet(
             sourcepath=portletsrc,
             id='ReportListPortlet',
@@ -86,7 +87,7 @@ class ZenPack(ZenPackBase):
     	ZenPackBase.upgrade(self, app)
     	self._registerReportListPortlet(app)
 
-    def remove(self, app):
-    	ZenPackBase.remove(self, app) zpm =
-    	app.zport.ZenPortletManager
-    	zpm.unregister_portlet('ReportListPortlet')
+    # def remove(self, app):
+    # 	ZenPackBase.remove(self, app)
+    #     zpm = app.zport.ZenPortletManager
+    # 	zpm.unregister_portlet('ReportListPortlet')
